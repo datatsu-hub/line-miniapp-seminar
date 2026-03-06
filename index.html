@@ -508,7 +508,17 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
 
+    <!-- LIFF SDK -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
     <script>
+        // =========================================================
+        // 【設定】LINE Developersコンソールで取得したLIFF IDをここに貼る
+        // （例: '165xxxxxxx-xxxxxxx'）
+        // =========================================================
+        const LIFF_ID = '';
+        // =========================================================
+
         // =========================================================
         // 【設定】Google Apps Script (GAS) のWebアプリURLをここに貼る
         // （例: 'https://script.google.com/macros/s/xxxxxxx/exec'）
@@ -516,7 +526,30 @@
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw7UiqeVSWZ_gEl7j9y_fq1sRLwzgB7zCEHARRFqXE_HUJg7TXWuocVVLzxXCu5DJAVYQ/exec';
         // =========================================================
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+
+            // --------------------------------------------------
+            // LIFF (LINE Front-end Framework) の初期化
+            // --------------------------------------------------
+            if (LIFF_ID) {
+                try {
+                    await liff.init({ liffId: LIFF_ID });
+                    if (liff.isLoggedIn()) {
+                        // LINEのプロフィールを取得
+                        const profile = await liff.getProfile();
+                        const nameInput = document.getElementById('name');
+                        // プロフィール名が取得でき、かつお名前欄が空なら自動入力
+                        if (profile.displayName && !nameInput.value) {
+                            nameInput.value = profile.displayName;
+                        }
+                    } else if (liff.isInClient()) {
+                        // LINEアプリ内でログインしていない場合はログインを促す
+                        liff.login();
+                    }
+                } catch (err) {
+                    console.error('LIFF initialization failed', err);
+                }
+            }
 
             // --------------------------------------------------
             // カレンダーUIの初期化 (Flatpickr)
